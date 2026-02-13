@@ -1,0 +1,29 @@
+node_modules/
+.pnp
+.pnp.js
+
+# Contracts
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/.env
+packages/contracts/.env.local
+packages/contracts/lib/
+
+# Operator
+packages/operator/.env
+packages/operator/.env.local
+packages/operator/dist/
+packages/operator/node_modules/
+
+# Web
+packages/web/.env
+packages/web/.env.local
+packages/web/build/
+packages/web/dist/
+packages/web/node_modules/
+
+# General
+.DS_Store
+.vscode/
+.idea/
+*.log
