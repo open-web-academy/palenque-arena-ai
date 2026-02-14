@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "env": {
+    "REACT_APP_RPC_URL": "@react_app_rpc_url",
+    "REACT_APP_FACTORY_ADDRESS": "@react_app_factory_address",
+    "REACT_APP_PAL_TOKEN_ADDRESS": "@react_app_pal_token_address"
+  }
+}

@@ -107,7 +107,7 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <WagmiProvider config={config}>
       <ConnectKitProvider>
@@ -116,3 +116,5 @@ export default function App() {
     </WagmiProvider>
   );
 }
+
+export default App;
