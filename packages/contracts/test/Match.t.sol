@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 import "forge-std/Test.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../src/Match.sol";
 import "../src/MatchFactory.sol";
 
@@ -29,8 +30,15 @@ contract MatchTest is Test {
 
     function setUp() public {
         pal = new MockERC20();
-        vm.prank(operator);
-        factory = new MatchFactory(operator, address(pal));
+        
+        // Deploy implementation and proxy
+        MatchFactory impl = new MatchFactory();
+        bytes memory initData = abi.encodeCall(
+            MatchFactory.initialize,
+            (operator, address(pal))
+        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), initData);
+        factory = MatchFactory(address(proxy));
     }
 
     function testCreateMatch() public {

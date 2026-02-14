@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IERC20.sol";
 
-contract Match {
+contract Match is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     enum State { Open, Closed, Settled }
 
     // Rooster identifiers
@@ -50,7 +53,12 @@ contract Match {
     event Settled(bool winnerIsA);
     event PayoutClaimed(address indexed claimer, uint256 amount);
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         address _operator,
         address _factory,
         address _palToken,
@@ -58,7 +66,9 @@ contract Match {
         string memory _roosterB,
         uint256 _startTime,
         uint256 _closeDuration
-    ) {
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        
         operator = _operator;
         factory = _factory;
         palToken = IERC20(_palToken);
@@ -67,6 +77,12 @@ contract Match {
         startTime = _startTime;
         closeTime = _startTime + _closeDuration;
     }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 
     function betOn(bool isA) external payable {
         require(state == State.Open, "Match not open");
