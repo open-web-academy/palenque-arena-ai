@@ -4,7 +4,7 @@ import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../src/MatchFactory.sol";
 
-contract DeployScript is Script {
+contract DeployProxyScript is Script {
     function run() external {
         address operator = vm.envAddress("OPERATOR_ADDRESS");
         address palToken = vm.envAddress("PAL_TOKEN_ADDRESS");
@@ -25,6 +25,7 @@ contract DeployScript is Script {
             initData
         );
         console.log("MatchFactory proxy deployed at:", address(factoryProxy));
+        console.log("Factory address (use this):", address(factoryProxy));
 
         vm.stopBroadcast();
     }
