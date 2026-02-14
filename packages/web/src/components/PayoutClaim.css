@@ -1,0 +1,52 @@
+.payout {
+  background: var(--bg-secondary);
+  border: 2px solid var(--green-success);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  box-shadow: 0 0 15px rgba(45, 80, 22, 0.2);
+}
+
+.payout h3 {
+  color: var(--green-success);
+  margin-bottom: var(--space-md);
+}
+
+.payout p {
+  color: var(--text-secondary);
+  margin: var(--space-md) 0;
+}
+
+.payout .winning {
+  color: var(--green-success);
+  font-weight: 600;
+  font-size: var(--body-lg);
+  animation: shimmer 1.5s infinite;
+}
+
+.payout .losing {
+  color: var(--red-accent);
+  font-weight: 600;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; text-shadow: 0 0 10px rgba(45, 80, 22, 0.5); }
+}
+
+.claim-button {
+  background: var(--gold-gradient);
+  color: #000;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  margin-top: var(--space-md);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.claim-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(244, 208, 63, 0.5);
+}

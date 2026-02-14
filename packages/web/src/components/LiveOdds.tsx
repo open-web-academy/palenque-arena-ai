@@ -1,3 +1,5 @@
+import "./LiveOdds.css";
+
 interface LiveOddsProps {
   pA: bigint;
   pB: bigint;

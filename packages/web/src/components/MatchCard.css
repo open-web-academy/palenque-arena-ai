@@ -1,0 +1,110 @@
+.match-card {
+  background: var(--bg-secondary);
+  border: 2px solid var(--gold-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  box-shadow: 0 0 20px rgba(244, 208, 63, 0.2);
+  transition: all var(--transition-normal);
+}
+
+.match-card.loading,
+.match-card.empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+}
+
+/* HEADER */
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid rgba(244, 208, 63, 0.2);
+  padding-bottom: var(--space-md);
+}
+
+.match-header h2 {
+  margin: 0;
+  color: var(--gold-light);
+  font-size: 24px;
+}
+
+.timer {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--red-accent);
+  font-weight: 700;
+  animation: pulse-timer 1s infinite;
+}
+
+@keyframes pulse-timer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ARENA */
+.match-arena {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-lg);
+  align-items: center;
+  margin: var(--space-xl) 0;
+}
+
+.rooster {
+  background: var(--bg-tertiary);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: all var(--transition-normal);
+}
+
+.rooster:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(244, 208, 63, 0.15);
+}
+
+.rooster h3 {
+  margin: 0;
+  font-size: 28px;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.rooster .odds {
+  font-family: var(--font-mono);
+  font-size: var(--numeric-xl);
+  font-weight: 700;
+  color: var(--gold-light);
+  margin: var(--space-md) 0;
+  line-height: 1;
+}
+
+.rooster .pool,
+.rooster .boost {
+  font-size: var(--body-sm);
+  color: var(--text-secondary);
+  margin: var(--space-sm) 0;
+}
+
+.versus {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  text-align: center;
+}
+
+/* FOOTER */
+.match-footer {
+  border-top: 1px solid rgba(244, 208, 63, 0.2);
+  padding-top: var(--space-md);
+  text-align: center;
+}
+
+.total-pool {
+  color: var(--text-secondary);
+  font-size: var(--body-md);
+  margin: 0;
+}

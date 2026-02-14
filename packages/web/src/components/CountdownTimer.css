@@ -1,0 +1,27 @@
+.countdown {
+  text-align: center;
+  padding: var(--space-lg);
+  background: var(--bg-secondary);
+  border: 2px solid var(--amber-warning);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: 0 0 15px rgba(217, 119, 6, 0.2);
+}
+
+.countdown p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--numeric-lg);
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.countdown.critical p {
+  color: var(--red-accent);
+  animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { color: var(--gold-light); }
+  50% { color: var(--red-accent); }
+}

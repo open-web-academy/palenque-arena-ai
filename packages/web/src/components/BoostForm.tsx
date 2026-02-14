@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseAbi } from "viem";
+import "./BetForm.css";
 
 const PAL_ABI = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",

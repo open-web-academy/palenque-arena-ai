@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseAbi } from "viem";
+import "./BetForm.css";
 
 const MATCH_ABI = parseAbi([
   "function betOn(bool isA) payable",

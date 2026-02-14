@@ -1,0 +1,40 @@
+.live-odds {
+  background: var(--bg-secondary);
+  border: 2px solid var(--gold-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: 0 0 15px rgba(244, 208, 63, 0.15);
+}
+
+.live-odds h4 {
+  color: var(--gold-light);
+  margin-bottom: var(--space-lg);
+}
+
+.odds-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+.odds-item {
+  text-align: center;
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.odds-item .rooster {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+.odds-item .percentage {
+  font-family: var(--font-mono);
+  font-size: var(--numeric-lg);
+  font-weight: 700;
+  color: var(--gold-light);
+  margin: 0;
+}

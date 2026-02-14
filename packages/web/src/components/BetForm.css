@@ -1,0 +1,105 @@
+.bet-form,
+.boost-form {
+  background: var(--bg-secondary);
+  border: 2px solid var(--gold-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: 0 0 15px rgba(244, 208, 63, 0.15);
+}
+
+.bet-form h3,
+.boost-form h3 {
+  color: var(--gold-light);
+  margin-bottom: var(--space-md);
+  font-size: 20px;
+}
+
+.bet-form input,
+.boost-form input {
+  width: 100%;
+  margin-bottom: var(--space-md);
+  background: var(--bg-tertiary);
+  border: 2px solid var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--numeric-md);
+}
+
+.bet-form input:focus,
+.boost-form input:focus {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 15px rgba(244, 208, 63, 0.3);
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.buttons button {
+  background: var(--bg-tertiary);
+  color: var(--gold-light);
+  border: 2px solid var(--gold-light);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+
+.buttons button:hover:not(:disabled) {
+  background: var(--gold-light);
+  color: #000;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(244, 208, 63, 0.5);
+}
+
+.buttons button.active {
+  background: var(--gold-light);
+  color: #000;
+}
+
+.note {
+  color: var(--amber-warning);
+  font-size: var(--body-sm);
+  margin-bottom: var(--space-md);
+}
+
+.status,
+.success {
+  font-size: var(--body-sm);
+  margin-top: var(--space-md);
+}
+
+.status {
+  color: var(--amber-warning);
+}
+
+.success {
+  color: var(--green-success);
+}
+
+/* BOOST FORM SPECIFIC */
+.boost-form {
+  border-color: var(--amber-warning);
+  box-shadow: 0 0 15px rgba(217, 119, 6, 0.1);
+}
+
+.boost-form .next-button {
+  width: 100%;
+  background: var(--gold-gradient);
+  color: #000;
+  border: none;
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+  font-weight: 600;
+}
+
+.boost-form .next-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(244, 208, 63, 0.5);
+}
