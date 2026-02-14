@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "skills": {
+    "monad-development": {
+      "version": "1.0.0",
+      "installedAt": 1770919520792
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1771023687714
+    }
+  }
+}

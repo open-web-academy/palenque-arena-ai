@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPublicClient, http, parseAbi } from "viem";
 import { monad } from "viem/chains";
 
@@ -8,14 +8,14 @@ const FACTORY_ABI = parseAbi([
 
 const MATCH_ABI = parseAbi([
   "event Settled(bool indexed winnerIsA)",
-  "event Committed(bytes32 commitHash)",
 ]);
 
 export function useMatchEvents(
   onMatchCreated?: (addr: string) => void,
   onSettled?: (winner: boolean) => void
 ) {
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const unsubscribeRef = useRef<(() => void)[]>([]);
+  const [currentMatchAddr, setCurrentMatchAddr] = useState<string | null>(null);
 
   useEffect(() => {
     const factoryAddress = process.env.REACT_APP_FACTORY_ADDRESS;
@@ -26,6 +26,10 @@ export function useMatchEvents(
       transport: http(process.env.REACT_APP_RPC_URL || "https://rpc.monad.xyz"),
     });
 
+    // Cleanup previous subscriptions
+    unsubscribeRef.current.forEach(unsub => unsub?.());
+    unsubscribeRef.current = [];
+
     // Listen to MatchCreated events
     const unsubMatch = publicClient.watchContractEvent({
       address: factoryAddress as `0x${string}`,
@@ -35,18 +39,50 @@ export function useMatchEvents(
         logs.forEach(log => {
           const args = log.args as any;
           if (args.matchAddress) {
+            setCurrentMatchAddr(args.matchAddress);
             onMatchCreated?.(args.matchAddress);
           }
         });
       },
     });
 
-    unsubscribeRef.current = unsubMatch;
+    unsubscribeRef.current.push(unsubMatch);
 
     return () => {
-      unsubscribeRef.current?.();
+      unsubscribeRef.current.forEach(unsub => unsub?.());
+      unsubscribeRef.current = [];
     };
   }, [onMatchCreated]);
+
+  // Listen to Settled events on the current match
+  useEffect(() => {
+    if (!currentMatchAddr || !onSettled) return;
+
+    const publicClient = createPublicClient({
+      chain: monad,
+      transport: http(process.env.REACT_APP_RPC_URL || "https://rpc.monad.xyz"),
+    });
+
+    const unsubSettled = publicClient.watchContractEvent({
+      address: currentMatchAddr as `0x${string}`,
+      abi: MATCH_ABI,
+      eventName: "Settled",
+      onLogs: (logs) => {
+        logs.forEach(log => {
+          const args = log.args as any;
+          if (typeof args.winnerIsA === "boolean") {
+            onSettled(args.winnerIsA);
+          }
+        });
+      },
+    });
+
+    unsubscribeRef.current.push(unsubSettled);
+
+    return () => {
+      unsubSettled?.();
+    };
+  }, [currentMatchAddr, onSettled]);
 
   return unsubscribeRef;
 }

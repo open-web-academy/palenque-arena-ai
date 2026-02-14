@@ -1,6 +1,7 @@
 import { getLastMatch, getMatchState, createMatch, closeBets, commit, reveal } from "./contract";
 import { generateSeed, createCommitHash } from "./utils/randomness";
 import { log } from "./utils/logger";
+import { withRetry } from "./utils/retry";
 
 export class Operator {
   private clients: any;
@@ -56,33 +57,40 @@ export class Operator {
   }
 
   private async createNewMatch() {
-    try {
-      const roosterA = this.roosters[Math.floor(Math.random() * this.roosters.length)];
-      const roosterB = this.roosters[Math.floor(Math.random() * this.roosters.length)];
-      const startTime = BigInt(Math.floor(Date.now() / 1000));
-      const closeDuration = BigInt(this.matchInterval);
+    const roosterA = this.roosters[Math.floor(Math.random() * this.roosters.length)];
+    const roosterB = this.roosters[Math.floor(Math.random() * this.roosters.length)];
+    const startTime = BigInt(Math.floor(Date.now() / 1000));
+    const closeDuration = BigInt(this.matchInterval);
 
+    try {
       log(`Creating match: ${roosterA} vs ${roosterB}`);
-      const hash = await createMatch(
-        this.clients.factory,
-        roosterA,
-        roosterB,
-        startTime,
-        closeDuration
+      const hash = await withRetry(
+        () =>
+          createMatch(
+            this.clients.factory,
+            roosterA,
+            roosterB,
+            startTime,
+            closeDuration
+          ),
+        { maxAttempts: 3, baseDelayMs: 2000, name: "createMatch" }
       );
       log(`Match created: tx ${hash}`);
     } catch (error) {
-      log(`Failed to create match: ${error}`, "error");
+      log(`Failed to create match after retries: ${error}`, "error");
     }
   }
 
   private async closeBetsAction(matchAddr: string) {
     try {
       log(`Closing bets for ${matchAddr.slice(0, 6)}`);
-      const hash = await closeBets(this.clients.walletClient, this.clients.publicClient, matchAddr);
+      const hash = await withRetry(
+        () => closeBets(this.clients.walletClient, this.clients.publicClient, matchAddr),
+        { maxAttempts: 3, baseDelayMs: 2000, name: `closeBets(${matchAddr.slice(0, 6)})` }
+      );
       log(`Bets closed: tx ${hash}`);
     } catch (error) {
-      log(`Failed to close bets: ${error}`, "error");
+      log(`Failed to close bets after retries: ${error}`, "error");
     }
   }
 
@@ -91,10 +99,13 @@ export class Operator {
       this.commitSeed = generateSeed();
       const commitHash = createCommitHash(this.commitSeed, this.clients.account.address);
       log(`Committing to ${matchAddr.slice(0, 6)}`);
-      const hash = await commit(this.clients.walletClient, this.clients.publicClient, matchAddr, commitHash);
+      const hash = await withRetry(
+        () => commit(this.clients.walletClient, this.clients.publicClient, matchAddr, commitHash),
+        { maxAttempts: 3, baseDelayMs: 2000, name: `commit(${matchAddr.slice(0, 6)})` }
+      );
       log(`Committed: tx ${hash}`);
     } catch (error) {
-      log(`Failed to commit: ${error}`, "error");
+      log(`Failed to commit after retries: ${error}`, "error");
       this.commitSeed = null;
     }
   }
@@ -103,10 +114,13 @@ export class Operator {
     try {
       if (!this.commitSeed) throw new Error("No seed to reveal");
       log(`Revealing match ${matchAddr.slice(0, 6)}`);
-      const hash = await reveal(this.clients.walletClient, this.clients.publicClient, matchAddr, this.commitSeed);
+      const hash = await withRetry(
+        () => reveal(this.clients.walletClient, this.clients.publicClient, matchAddr, this.commitSeed!),
+        { maxAttempts: 3, baseDelayMs: 2000, name: `reveal(${matchAddr.slice(0, 6)})` }
+      );
       log(`Revealed: tx ${hash}`);
     } catch (error) {
-      log(`Failed to reveal: ${error}`, "error");
+      log(`Failed to reveal after retries: ${error}`, "error");
     }
   }
 }

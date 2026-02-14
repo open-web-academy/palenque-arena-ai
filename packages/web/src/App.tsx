@@ -4,6 +4,7 @@ import { monad } from "wagmi/chains";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { useMatch } from "./hooks/useMatch";
 import { useMatchEvents } from "./hooks/useMatchEvents";
+import { useToast } from "./hooks/useToast";
 import { MatchCard } from "./components/MatchCard";
 import { BetForm } from "./components/BetForm";
 import { BoostForm } from "./components/BoostForm";
@@ -11,6 +12,7 @@ import { PayoutClaim } from "./components/PayoutClaim";
 import { CountdownTimer } from "./components/CountdownTimer";
 import { LiveOdds } from "./components/LiveOdds";
 import { MatchHistory } from "./components/MatchHistory";
+import { ToastContainer } from "./components/ToastContainer";
 import "./index.css";
 
 const config = createConfig(
@@ -29,6 +31,7 @@ const config = createConfig(
 function AppContent() {
   const { match, odds, loading, error } = useMatch();
   const [refreshKey, setRefreshKey] = useState(0);
+  const { toasts, remove } = useToast();
 
   useMatchEvents(
     () => setRefreshKey(k => k + 1),
@@ -42,8 +45,9 @@ function AppContent() {
     : null;
 
   return (
-    <div className="app">
-      <h1>🐓 Palenque Arena</h1>
+    <>
+      <div className="app">
+        <h1>🐓 Palenque Arena</h1>
 
       {loading && <p className="status">Loading match...</p>}
       {error && <p className="error">Error: {error}</p>}
@@ -103,7 +107,9 @@ function AppContent() {
           <MatchHistory key={refreshKey} />
         </>
       )}
-    </div>
+      </div>
+      <ToastContainer toasts={toasts} onRemove={remove} />
+    </>
   );
 }
 
