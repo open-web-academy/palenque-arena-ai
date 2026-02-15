@@ -1,10 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+<<<<<<< HEAD
     "module": "CommonJS",
     "moduleResolution": "node",
     "outDir": "dist",
 
+=======
+    "module": "commonjs",
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+>>>>>>> 53a4036 (fix(operator): seed + commit hash padding)
     "strict": true,
     "esModuleInterop": true,
 
