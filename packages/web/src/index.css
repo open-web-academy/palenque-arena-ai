@@ -1,204 +1,121 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
-@import url('./styles/tokens.css');
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@theme {
+  --color-obsidian: #0A0A0A;
+  --color-charcoal: #121212;
+  --color-gold: #FFB800;
+  --color-gold-dim: rgba(255, 184, 0, 0.5);
+  --color-arena-red: #FF3D3D;
+  --color-arena-red-dim: rgba(255, 61, 61, 0.5);
+  --color-emerald: #0A5E4A;
+  --color-emerald-dim: rgba(10, 94, 74, 0.5);
+  --color-bronze: #2B1A0F;
+  --color-bronze-light: #3d2614;
+  --font-display: "Bebas Neue", "Orbitron", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-numeric: "Orbitron", "JetBrains Mono", monospace;
+  --shadow-gold-glow: 0 0 30px rgba(255, 184, 0, 0.4), 0 0 60px rgba(255, 184, 0, 0.15);
+  --shadow-red-glow: 0 0 30px rgba(255, 61, 61, 0.4), 0 0 60px rgba(255, 61, 61, 0.15);
+  --shadow-emerald-glow: 0 0 24px rgba(10, 94, 74, 0.5);
 }
 
-html, body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    --obsidian: #0A0A0A;
+    --charcoal: #121212;
+    --gold: #FFB800;
+    --gold-dim: rgba(255, 184, 0, 0.5);
+    --arena-red: #FF3D3D;
+    --arena-red-dim: rgba(255, 61, 61, 0.5);
+    --emerald: #0A5E4A;
+    --emerald-dim: rgba(10, 94, 74, 0.5);
+    --bronze: #2B1A0F;
+    --bronze-light: #3d2614;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-obsidian text-white font-sans antialiased;
+    background: var(--obsidian);
+  }
+}
+
+/* Cinematic background — underground arena + Vegas */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 184, 0, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 80% at 10% 50%, rgba(255, 61, 61, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 80% at 90% 50%, rgba(255, 61, 61, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 50% 55%, rgba(10, 94, 74, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #0A0A0A 0%, #121212 40%, #0d0d0d 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 184, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 184, 0, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 #root {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
-  padding: var(--space-lg);
-}
-
-/* HEADINGS */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif);
-  color: var(--text-primary);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-h1 { font-size: var(--h1); }
-h2 { font-size: var(--h2); }
-h3 { font-size: var(--h3); }
-h4 { font-size: var(--h4); }
-
-/* BUTTONS */
-button {
-  font-family: var(--font-sans);
-  font-size: var(--body-md);
-  padding: var(--space-md) var(--space-lg);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  font-weight: 600;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* PRIMARY BUTTON (Gold gradient) */
-.btn-primary {
-  background: var(--gold-gradient);
-  color: #000;
-  box-shadow: 0 4px 15px rgba(244, 208, 63, 0.3);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(244, 208, 63, 0.5);
-}
-
-/* SECONDARY BUTTON */
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--gold-light);
-  border: 2px solid var(--gold-light);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: var(--gold-light);
-  color: #000;
-}
-
-/* INPUTS */
-input, select {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 2px solid var(--bg-secondary);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-  font-family: var(--font-sans);
-  font-size: var(--body-md);
-  transition: all var(--transition-fast);
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--gold-light);
-  box-shadow: 0 0 15px rgba(244, 208, 63, 0.3);
-}
-
-input::placeholder {
-  color: var(--text-muted);
-}
-
-/* APP LAYOUT */
-.app {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.app > h1 {
-  text-align: center;
-  margin-bottom: var(--space-2xl);
-  font-size: 3rem;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* TOAST NOTIFICATIONS */
-.toast-container {
-  position: fixed;
-  top: var(--space-lg);
-  right: var(--space-lg);
-  z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  max-width: 400px;
 }
 
-.toast {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease-out;
+@layer components {
+  .font-numeric { @apply font-numeric tabular-nums; }
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* App layout — keep for compatibility during redesign */
+.arena-app { @apply min-h-screen flex flex-col max-w-6xl mx-auto px-6 pb-16; }
+.arena-main { @apply flex-1 flex flex-col gap-12 pt-8; }
+.arena-loading { @apply flex flex-col items-center justify-center gap-6 py-16 text-gray-400; }
+.arena-error { @apply p-8 rounded-xl bg-arena-red/10 border border-arena-red text-arena-red text-center shadow-red-glow; }
+.arena-error-hint { @apply mt-4 text-sm text-gray-400; }
+.arena-error code, .arena-empty code { @apply bg-black/30 px-1.5 py-0.5 rounded font-mono text-sm; }
+.arena-empty { @apply p-12 text-center bg-charcoal/80 border-2 border-bronze-light rounded-xl text-gray-400; }
+.arena-empty p:first-child { @apply font-display text-2xl text-gold tracking-wider; }
+.arena-empty-hint { @apply mt-4 text-sm text-gray-500; }
+.section-title { @apply font-display text-xl text-gold tracking-[0.2em] uppercase mb-4 pb-2 border-b-2 border-bronze inline-block; }
+
+/* Toasts — luxury glass */
+.toast-container { @apply fixed top-6 right-6 z-[9999] flex flex-col gap-4 max-w-[380px]; }
+.toast { @apply flex items-center gap-4 p-4 rounded-lg bg-charcoal/95 backdrop-blur-xl border-2 border-gold/20 text-white shadow-xl; }
+.toast-success { @apply border-l-4 border-emerald; }
+.toast-error { @apply border-l-4 border-arena-red; }
+.toast-warning { @apply border-l-4 border-gold; }
+.toast-info { @apply border-l-4 border-purple-500; }
+.toast-message { @apply flex-1 font-medium; }
+.toast-tx-link { @apply text-gold underline text-sm cursor-pointer; }
+.toast-close { @apply bg-transparent border-0 text-gray-400 cursor-pointer p-0 w-7 h-7 flex items-center justify-center rounded hover:text-white hover:bg-white/10; }
 
 @keyframes slideIn {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-.toast-success {
-  background: #10b981;
-  color: white;
-}
-
-.toast-error {
-  background: #ef4444;
-  color: white;
-}
-
-.toast-warning {
-  background: #f59e0b;
-  color: white;
-}
-
-.toast-info {
-  background: #3b82f6;
-  color: white;
-}
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-tx-link {
-  color: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.875rem;
-  white-space: nowrap;
-}
-
-.toast-tx-link:hover {
-  opacity: 0.8;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-size: 1.5rem;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.toast-close:hover {
-  opacity: 0.7;
+/* ConnectKit overrides — match arena theme */
+[data-connectkit-modal] {
+  --ck-border-radius: 12px;
+  --ck-overlay-background: rgba(10, 10, 10, 0.9);
+  --ck-body-background: #121212;
+  --ck-primary-button-background: #FFB800;
+  --ck-primary-button-color: #0A0A0A;
 }

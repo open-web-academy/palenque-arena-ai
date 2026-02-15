@@ -1,27 +1,27 @@
 .countdown {
   text-align: center;
-  padding: var(--space-lg);
-  background: var(--bg-secondary);
-  border: 2px solid var(--amber-warning);
+  padding: var(--space-lg) var(--space-xl);
+  background: linear-gradient(180deg, var(--stone-700) 0%, var(--stone-800) 100%);
+  border: 3px solid var(--wood);
   border-radius: var(--radius-lg);
-  margin-bottom: var(--space-lg);
-  box-shadow: 0 0 15px rgba(217, 119, 6, 0.2);
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.35), 0 0 30px rgba(185, 28, 28, 0.15);
 }
 
 .countdown p {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--numeric-lg);
+  font-family: var(--font-numeric);
+  font-size: var(--numeric-xl);
   font-weight: 700;
-  color: var(--gold-light);
+  color: var(--red-bright);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px var(--red-dim);
 }
 
 .countdown.critical p {
-  color: var(--red-accent);
-  animation: pulse-red 1s infinite;
+  animation: countdown-pulse 1s ease-in-out infinite;
 }
 
-@keyframes pulse-red {
-  0%, 100% { color: var(--gold-light); }
-  50% { color: var(--red-accent); }
+@keyframes countdown-pulse {
+  0%, 100% { opacity: 1; text-shadow: 0 0 20px var(--red-dim), 0 0 40px rgba(185, 28, 28, 0.2); }
+  50% { opacity: 0.9; text-shadow: 0 0 30px var(--red-bright), 0 0 60px rgba(185, 28, 28, 0.3); }
 }

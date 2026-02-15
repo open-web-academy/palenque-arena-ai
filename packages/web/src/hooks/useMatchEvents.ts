@@ -18,12 +18,12 @@ export function useMatchEvents(
   const [currentMatchAddr, setCurrentMatchAddr] = useState<string | null>(null);
 
   useEffect(() => {
-    const factoryAddress = process.env.REACT_APP_FACTORY_ADDRESS;
+    const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS;
     if (!factoryAddress) return;
 
     const publicClient = createPublicClient({
       chain: monad,
-      transport: http(process.env.REACT_APP_RPC_URL || "https://rpc.monad.xyz"),
+      transport: http(import.meta.env.VITE_RPC_URL || "https://rpc.monad.xyz"),
     });
 
     // Cleanup previous subscriptions
@@ -60,7 +60,7 @@ export function useMatchEvents(
 
     const publicClient = createPublicClient({
       chain: monad,
-      transport: http(process.env.REACT_APP_RPC_URL || "https://rpc.monad.xyz"),
+      transport: http(import.meta.env.VITE_RPC_URL || "https://rpc.monad.xyz"),
     });
 
     const unsubSettled = publicClient.watchContractEvent({

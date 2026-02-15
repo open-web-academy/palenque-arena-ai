@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "./CountdownTimer.css";
+import { motion } from "framer-motion";
 
 interface CountdownTimerProps {
   closeTime: bigint;
@@ -26,10 +26,21 @@ export function CountdownTimer({ closeTime, onExpired }: CountdownTimerProps) {
 
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
+  const isCritical = seconds > 0 && seconds <= 30;
 
   return (
-    <div className="countdown">
-      <p>{mins}m {secs}s remaining</p>
-    </div>
+    <motion.div
+      className={`rounded-xl px-8 py-5 text-center ${
+        isCritical
+          ? "bg-arena-red/10 border-2 border-arena-red shadow-red-glow"
+          : "bg-charcoal/80 border-2 border-gold/30"
+      }`}
+      animate={isCritical ? { scale: [1, 1.01, 1] } : {}}
+      transition={{ duration: 1, repeat: isCritical ? Infinity : 0 }}
+    >
+      <p className={`font-numeric text-3xl md:text-4xl font-bold ${isCritical ? "text-arena-red" : "text-gold"}`}>
+        {mins}m {secs}s remaining
+      </p>
+    </motion.div>
   );
 }

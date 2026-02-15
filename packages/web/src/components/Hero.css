@@ -1,0 +1,124 @@
+/* Hero — Entrada al coliseo / cartel de lucha */
+.hero {
+  position: relative;
+  min-height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl) var(--space-lg);
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 100% 85% at 50% 25%, rgba(201, 162, 39, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 20% 60%, rgba(166, 61, 18, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse 70% 50% at 80% 60%, rgba(166, 61, 18, 0.12) 0%, transparent 45%),
+    linear-gradient(180deg, transparent 0%, rgba(13, 40, 24, 0.2) 100%);
+  filter: blur(32px);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 760px;
+}
+
+.hero-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+/* Logo — protagonista, estilo cartel */
+.hero-logo-img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 24px var(--gold-dim)) drop-shadow(0 0 48px rgba(201, 162, 39, 0.3));
+  animation: hero-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hero-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 24px var(--gold-dim)) drop-shadow(0 0 48px rgba(201, 162, 39, 0.3)); }
+  50% { transform: scale(1.04); filter: drop-shadow(0 0 32px var(--gold)) drop-shadow(0 0 64px rgba(201, 162, 39, 0.4)); }
+}
+
+/* Título — cartel de coliseo */
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 9vw, 5rem);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  line-height: 1.05;
+}
+
+.hero-title-main {
+  color: var(--gold-bright);
+  text-shadow: 0 0 32px var(--gold-dim), 0 0 64px rgba(201, 162, 39, 0.25);
+}
+
+.hero-title-accent {
+  color: var(--terracotta-soft);
+  text-shadow: 0 0 32px var(--terracotta-glow), 0 0 64px rgba(196, 92, 40, 0.2);
+}
+
+.hero-tagline {
+  color: var(--text-secondary);
+  font-size: var(--body-lg);
+  margin-bottom: var(--space-2xl);
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--body-md);
+  text-decoration: none;
+  transition: all var(--transition-normal);
+  min-width: 180px;
+  letter-spacing: 0.06em;
+}
+
+.hero-btn-primary {
+  background: var(--gold-gradient);
+  color: var(--stone-900);
+  box-shadow: var(--glow-gold);
+  border: 2px solid var(--gold-bright);
+}
+
+.hero-btn-primary:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 48px rgba(201, 162, 39, 0.5), 0 0 96px rgba(201, 162, 39, 0.2);
+}
+
+.hero-btn-secondary {
+  background: transparent;
+  color: var(--gold-bright);
+  border: 2px solid var(--gold);
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(201, 162, 39, 0.12);
+  box-shadow: var(--glow-gold);
+}

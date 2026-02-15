@@ -34,7 +34,17 @@ export async function initClients(
     transport: http(rpcUrl),
   });
 
-  const account = privateKeyToAccount(privateKey as `0x${string}`);
+  // Normalize private key: strip whitespace/quotes, ensure 0x + 64 hex chars (32 bytes)
+  const raw = String(privateKey).trim().replace(/^["']|["']$/g, "").replace(/\s/g, "");
+  const hexOnly = raw.startsWith("0x") ? raw.slice(2) : raw;
+  if (!/^[0-9a-fA-F]+$/.test(hexOnly) || hexOnly.length !== 64) {
+    throw new Error(
+      `Invalid OPERATOR_PRIVATE_KEY: must be 64 hex characters (32 bytes), with or without 0x prefix. Got ${hexOnly.length} chars.`
+    );
+  }
+  const normalizedPrivateKey = `0x${hexOnly}` as `0x${string}`;
+
+  const account = privateKeyToAccount(normalizedPrivateKey);
 
   const walletClient = createWalletClient({
     chain: monad,
@@ -49,6 +59,10 @@ export async function initClients(
   });
 
   return { publicClient, walletClient, account, factory };
+}
+
+export async function getMatchCount(factory: any): Promise<bigint> {
+  return await factory.read.matchCount();
 }
 
 export async function getLastMatch(factory: any) {

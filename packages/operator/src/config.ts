@@ -1,7 +1,7 @@
 export const config = {
   // Network
   rpcUrl: process.env.RPC_URL || "https://rpc.monad.xyz",
-  operatorPrivateKey: process.env.OPERATOR_PRIVATE_KEY || "",
+  operatorPrivateKey: (process.env.OPERATOR_PRIVATE_KEY || "").trim(),
   factoryAddress: process.env.FACTORY_ADDRESS || "",
   palTokenAddress: process.env.PAL_TOKEN_ADDRESS || "",
 

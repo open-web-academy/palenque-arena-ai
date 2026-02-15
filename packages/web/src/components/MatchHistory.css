@@ -1,0 +1,94 @@
+.match-history-section {
+  margin-top: var(--space-2xl);
+}
+
+.match-history-section .section-title {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.history-cards-scroll {
+  display: flex;
+  gap: var(--space-lg);
+  overflow-x: auto;
+  padding-bottom: var(--space-md);
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-cards-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.history-cards-scroll::-webkit-scrollbar-track {
+  background: var(--stone-800);
+  border-radius: 4px;
+}
+
+.history-cards-scroll::-webkit-scrollbar-thumb {
+  background: var(--wood-light);
+  border-radius: 4px;
+}
+
+.history-cards-scroll .empty-hint {
+  color: var(--text-muted);
+  padding: var(--space-xl);
+}
+
+.history-card {
+  flex: 0 0 220px;
+  scroll-snap-align: start;
+  background: linear-gradient(180deg, var(--stone-700) 0%, var(--stone-800) 100%);
+  border: 2px solid var(--wood-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.history-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(201, 162, 39, 0.15);
+}
+
+.history-card-match {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--body-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.history-card-match span:first-child,
+.history-card-match span:last-child {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--text-secondary);
+}
+
+.history-card-match .winner {
+  color: var(--emerald);
+  text-shadow: 0 0 12px var(--emerald-dim);
+}
+
+.history-vs {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--red-bright);
+}
+
+.history-card-winner {
+  margin: 0;
+  text-align: center;
+  font-size: var(--body-sm);
+}
+
+.winner-glow {
+  color: var(--emerald);
+  font-weight: 700;
+  text-shadow: 0 0 15px var(--emerald-dim);
+}

@@ -1,4 +1,4 @@
-import { getLastMatch, getMatchState, createMatch, closeBets, commit, reveal } from "./contract";
+import { getMatchCount, getLastMatch, getMatchState, createMatch, closeBets, commit, reveal } from "./contract";
 import { generateSeed, createCommitHash } from "./utils/randomness";
 import { log } from "./utils/logger";
 import { withRetry } from "./utils/retry";
@@ -21,8 +21,13 @@ export class Operator {
 
   async tick() {
     try {
+      const count = await getMatchCount(this.clients.factory);
+      if (count === 0n) {
+        await this.createNewMatch();
+        return;
+      }
+
       const matchAddr = await getLastMatch(this.clients.factory);
-      
       if (!matchAddr || matchAddr === "0x0000000000000000000000000000000000000000") {
         await this.createNewMatch();
         return;
