@@ -1,25 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-<<<<<<< HEAD
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "outDir": "dist",
-
-=======
     "module": "commonjs",
+    "moduleResolution": "node",
     "lib": ["ES2022", "DOM"],
+    "types": ["node"],
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src",
->>>>>>> 53a4036 (fix(operator): seed + commit hash padding)
     "strict": true,
     "esModuleInterop": true,
-
-    "skipLibCheck": true,
-
-    "types": ["node"],
-    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"]
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
