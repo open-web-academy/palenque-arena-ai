@@ -1,0 +1,17 @@
+{
+  "name": "cyber-rooster",
+  "version": "1.0.0",
+  "description": "OpenClaw skill for Cyber Rooster League on Monad blockchain",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
