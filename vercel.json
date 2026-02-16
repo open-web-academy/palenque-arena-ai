@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm install && pnpm -r build",
+  "outputDirectory": "packages/web/dist",
+  "framework": "vite",
+  "routes": [
+    { "src": "/.*", "dest": "/index.html" }
+  ]
+}

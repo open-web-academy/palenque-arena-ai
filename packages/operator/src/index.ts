@@ -23,12 +23,22 @@ async function main() {
   const operator = new Operator(clients, config.factoryAddress, config);
 
   log(`Operator started. Tick every ${config.matchInterval}s`);
+  
+  let consecutiveErrors = 0;
+  const MAX_CONSECUTIVE_ERRORS = 5;
 
   while (true) {
     try {
       await operator.tick();
+      consecutiveErrors = 0; // Reset on success
     } catch (error) {
-      log(`Operator error: ${error}`, "error");
+      consecutiveErrors++;
+      log(`Operator error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}): ${error}`, "error");
+      
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        log(`Too many consecutive errors. Shutting down.`, "error");
+        process.exit(1);
+      }
     }
     await new Promise(p => setTimeout(p, config.matchInterval * 1000));
   }
