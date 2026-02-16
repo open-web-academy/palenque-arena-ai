@@ -13,6 +13,7 @@ import { PayoutClaim } from "./components/PayoutClaim";
 import { CountdownTimer } from "./components/CountdownTimer";
 import { LiveOdds } from "./components/LiveOdds";
 import { MatchHistory } from "./components/MatchHistory";
+import { SettledMatchDetails } from "./components/SettledMatchDetails";
 import { ToastContainer } from "./components/ToastContainer";
 import { WalletBalance } from "./components/WalletBalance";
 import { Hero } from "./components/Hero";
@@ -163,13 +164,24 @@ function AppContent() {
                 )}
 
                 {matchState === 2 && winner && (
-                  <PayoutClaim
-                    matchAddress={match.address}
-                    matchState={matchState}
-                    winner={winner as "A" | "B"}
-                    winnerName={match.winnerA ? match.roosterA : match.roosterB}
-                    userHasWinningBet={userHasWinningBet}
-                  />
+                  <>
+                    <SettledMatchDetails
+                      roosterA={match.roosterA}
+                      roosterB={match.roosterB}
+                      winner={winner as "A" | "B"}
+                      poolA={match.betPoolA}
+                      poolB={match.betPoolB}
+                      boostA={match.boostPoolA || 0n}
+                      boostB={match.boostPoolB || 0n}
+                    />
+                    <PayoutClaim
+                      matchAddress={match.address}
+                      matchState={matchState}
+                      winner={winner as "A" | "B"}
+                      winnerName={match.winnerA ? match.roosterA : match.roosterB}
+                      userHasWinningBet={userHasWinningBet}
+                    />
+                  </>
                 )}
 
                 <MatchHistory key={refreshKey} />
