@@ -3,6 +3,8 @@ import { generateSeed, createCommitHash } from "./utils/randomness";
 import { log } from "./utils/logger";
 import { withRetry } from "./utils/retry";
 
+const STUCK_TICKS_THRESHOLD = 5;
+
 export class Operator {
   private clients: any;
   private factoryAddress: string;
@@ -10,8 +12,9 @@ export class Operator {
   private autoSettleDelay: number;
   private roosters: string[];
 
-  // ✅ Store seed per match address to avoid "Invalid seed" when lastMatch changes
-  private commitSeeds = new Map<string, bigint>(); // matchAddr -> seed
+  private commitSeeds = new Map<string, bigint>();
+  private lastStateKey = "";
+  private stuckTicks = 0;
 
   constructor(clients: any, factoryAddress: string, config: any) {
     this.clients = clients;
@@ -25,40 +28,63 @@ export class Operator {
     try {
       const count = await getMatchCount(this.clients.factory);
       if (count === 0n) {
+        log("[ARENA] No matches. Creating first match.");
+        this.stuckTicks = 0;
         await this.createNewMatch();
         return;
       }
 
       const matchAddr = await getLastMatch(this.clients.factory);
       if (!matchAddr || matchAddr === "0x0000000000000000000000000000000000000000") {
+        log("[ARENA] getLastMatch zero. Creating new match.");
+        this.stuckTicks = 0;
         await this.createNewMatch();
         return;
       }
 
       const { state, closeTime } = await getMatchState(this.clients.publicClient, matchAddr);
       const now = BigInt(Math.floor(Date.now() / 1000));
+      const stateLabel = state === 0 ? "OPEN" : state === 1 ? "CLOSED" : "SETTLED";
+      const stateKey = `${matchAddr}-${state}`;
+
+      if (stateKey === this.lastStateKey) {
+        this.stuckTicks++;
+        if (this.stuckTicks >= STUCK_TICKS_THRESHOLD) {
+          log(`[ARENA] Stuck in ${stateLabel} for ${STUCK_TICKS_THRESHOLD} ticks. Forcing recovery.`, "warn");
+          if (state === 2) {
+            this.commitSeeds.delete(matchAddr);
+            await this.createNewMatch();
+          }
+          this.stuckTicks = 0;
+        }
+      } else {
+        this.lastStateKey = stateKey;
+        this.stuckTicks = 0;
+      }
+
+      log(`[ARENA] Match ${matchAddr.slice(0, 10)}… state=${stateLabel}`);
 
       if (state === 0) {
-        // Open
         if (now >= closeTime) {
+          log(`[ARENA] Closing bets (closeTime reached).`);
           await this.closeBetsAction(matchAddr);
         }
       } else if (state === 1) {
-        // Closed
         if (!this.commitSeeds.has(matchAddr)) {
+          log(`[ARENA] Committing.`);
           await this.commitAction(matchAddr);
         } else {
+          log(`[ARENA] Revealing after ${this.autoSettleDelay}s delay.`);
           await new Promise((p) => setTimeout(p, this.autoSettleDelay * 1000));
           await this.revealAction(matchAddr);
         }
       } else if (state === 2) {
-        // Settled
-        log(`Match ${matchAddr.slice(0, 6)} settled. Creating new match.`);
+        log(`[ARENA] Settled. Creating new match.`);
         this.commitSeeds.delete(matchAddr);
         await this.createNewMatch();
       }
     } catch (error) {
-      log(`Error in tick: ${error}`, "error");
+      log(`[ARENA] Error in tick: ${error}`, "error");
     }
   }
 
@@ -75,7 +101,8 @@ export class Operator {
           createMatch(this.clients.factory, roosterA, roosterB, startTime, closeDuration),
         { maxAttempts: 3, baseDelayMs: 2000, name: "createMatch" }
       );
-      log(`Match created: tx ${hash}`);
+      await this.clients.publicClient.waitForTransactionReceipt({ hash });
+      log(`Match created and mined: tx ${hash}`);
     } catch (error) {
       log(`Failed to create match after retries: ${error}`, "error");
     }

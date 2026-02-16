@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { createPublicClient, http, parseAbi } from "viem";
 import { monad } from "viem/chains";
@@ -43,8 +43,10 @@ export interface Odds {
   pB: bigint;
 }
 
-const POLL_OPEN_MS = 15000;   // 15s when match is open (was 5s → less 429)
-const POLL_OTHER_MS = 45000;  // 45s when closed/settled
+const POLL_OPEN_MS = 12000;   // 12s when match is open
+const POLL_OTHER_MS = 6000;   // 6s when closed/settled so we pick up the next OPEN match quickly
+const POLL_NO_MATCH_MS = 10000; // 10s when no match (recover faster when operator creates one)
+const POLL_ERROR_MS = 15000; // 15s retry after error
 const BACKOFF_AFTER_429_MS = 60000; // 1 min backoff after rate limit
 
 function is429(e: unknown): boolean {
@@ -59,14 +61,20 @@ export function useMatch() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const backoffUntil = useRef<number>(0);
+  const fetchRef = useRef<() => void>(() => {});
 
   const rpcUrl = import.meta.env.VITE_RPC_URL || "https://rpc.monad.xyz";
   const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS;
 
+  const refetch = useCallback(() => {
+    backoffUntil.current = 0;
+    fetchRef.current();
+  }, []);
+
   useEffect(() => {
     const zeroAddress = "0x0000000000000000000000000000000000000000";
     if (!factoryAddress || factoryAddress === zeroAddress) {
-      setError("Falta configurar VITE_FACTORY_ADDRESS en .env (packages/web).");
+      setError("Set VITE_FACTORY_ADDRESS in .env (packages/web).");
       setLoading(false);
       return;
     }
@@ -79,11 +87,20 @@ export function useMatch() {
     let pollTimeout: ReturnType<typeof setTimeout>;
     let isMounted = true;
 
-    const scheduleNext = (state?: number) => {
+    const scheduleNext = (state?: number, afterError?: boolean) => {
       const now = Date.now();
-      const delay = now < backoffUntil.current
-        ? backoffUntil.current - now
-        : state === 0 ? POLL_OPEN_MS : POLL_OTHER_MS;
+      let delay: number;
+      if (now < backoffUntil.current) {
+        delay = backoffUntil.current - now;
+      } else if (afterError) {
+        delay = POLL_ERROR_MS;
+      } else if (state === undefined || state === -1) {
+        delay = POLL_NO_MATCH_MS;
+      } else if (state === 0) {
+        delay = POLL_OPEN_MS;
+      } else {
+        delay = POLL_OTHER_MS;
+      }
       pollTimeout = setTimeout(() => fetchMatch(), delay);
     };
 
@@ -109,7 +126,7 @@ export function useMatch() {
             setError(null);
             setLoading(false);
           }
-          scheduleNext();
+          scheduleNext(-1);
           return;
         }
 
@@ -124,9 +141,10 @@ export function useMatch() {
           if (isMounted) {
             setMatch(null);
             setOdds(null);
+            setError(null);
             setLoading(false);
           }
-          scheduleNext();
+          scheduleNext(-1);
           return;
         }
 
@@ -196,14 +214,15 @@ export function useMatch() {
         setLoading(false);
         if (is429(err)) {
           backoffUntil.current = Date.now() + BACKOFF_AFTER_429_MS;
-          setError("RPC rate limit (429). Usa un RPC con API key en VITE_RPC_URL o espera 1 minuto.");
+          setError("RPC rate limit (429). Use an RPC with API key in VITE_RPC_URL or wait 1 minute.");
         } else {
           setError(String(err));
         }
-        scheduleNext(match?.state);
+        scheduleNext(match?.state, true);
       }
     };
 
+    fetchRef.current = () => fetchMatch();
     fetchMatch();
 
     return () => {
@@ -212,5 +231,5 @@ export function useMatch() {
     };
   }, [factoryAddress, rpcUrl, userAddress]);
 
-  return { match, odds, loading, error };
+  return { match, odds, loading, error, refetch };
 }

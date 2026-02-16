@@ -1,17 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPublicClient, http, parseAbi } from "viem";
 import { monad } from "viem/chains";
 import { motion } from "framer-motion";
+import { Trophy, Clock, AlertCircle } from "lucide-react";
 
 const MATCH_ABI = parseAbi([
   "function state() view returns (uint8)",
   "function roosterA() view returns (string)",
   "function roosterB() view returns (string)",
   "function winnerA() view returns (bool)",
-  "function poolA() view returns (uint256)",
-  "function poolB() view returns (uint256)",
-  "function totalBoostA() view returns (uint256)",
-  "function totalBoostB() view returns (uint256)",
+  "function betPoolA() view returns (uint256)",
+  "function betPoolB() view returns (uint256)",
+  "function boostPoolA() view returns (uint256)",
+  "function boostPoolB() view returns (uint256)",
 ]);
 
 const FACTORY_ABI = parseAbi([
@@ -23,6 +24,7 @@ interface MatchRecord {
   address: string;
   roosterA: string;
   roosterB: string;
+  state: number;
   winner?: string;
   poolA: bigint;
   poolB: bigint;
@@ -30,84 +32,88 @@ interface MatchRecord {
   boostB: bigint;
 }
 
+const LAST_N = 5;
+const HISTORY_POLL_MS = 60000; // 1 min to avoid hammering public RPC
+const RPC_TIMEOUT_MS = 15000;
+const BACKOFF_AFTER_RATE_LIMIT_MS = 90000; // 1.5 min after 429/timeout
+
+function isRateLimitOrTimeout(e: unknown): boolean {
+  const s = String(e ?? "").toLowerCase();
+  return s.includes("429") || s.includes("too many") || s.includes("rate limit") || s.includes("timeout") || s.includes("took too long");
+}
+
 export function MatchHistory() {
   const [history, setHistory] = useState<MatchRecord[]>([]);
+  const [rpcError, setRpcError] = useState<string | null>(null);
+  const backoffUntil = useRef<number>(0);
 
   useEffect(() => {
+    const rpcUrl = import.meta.env.VITE_RPC_URL || "https://rpc.monad.xyz";
+    const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS;
+    if (!factoryAddress) return;
+
     const publicClient = createPublicClient({
       chain: monad,
-      transport: http(import.meta.env.VITE_RPC_URL || "https://rpc.monad.xyz"),
+      transport: http(rpcUrl, { timeout: RPC_TIMEOUT_MS }),
     });
 
     const fetchHistory = async () => {
+      if (Date.now() < backoffUntil.current) return;
       try {
-        const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS;
-        if (!factoryAddress) return;
-
+        setRpcError(null);
         const matchCount = (await publicClient.readContract({
           address: factoryAddress as `0x${string}`,
           abi: FACTORY_ABI,
           functionName: "matchCount",
         })) as bigint;
 
-        const records: MatchRecord[] = [];
-        const limit = Math.min(Number(matchCount), 10);
+        const total = Number(matchCount);
+        if (total === 0) {
+          setHistory([]);
+          return;
+        }
 
-        for (let i = Math.max(0, Number(matchCount) - limit); i < Number(matchCount); i++) {
-          const matchAddr = (await publicClient.readContract({
+        const start = Math.max(0, total - LAST_N);
+        const count = Math.min(LAST_N, total - start);
+
+        const matchAddrs = await publicClient.multicall({
+          contracts: Array.from({ length: count }, (_, i) => ({
             address: factoryAddress as `0x${string}`,
             abi: FACTORY_ABI,
-            functionName: "matches",
-            args: [BigInt(i)],
-          })) as string;
+            functionName: "matches" as const,
+            args: [BigInt(start + i)] as const,
+          })),
+          allowFailure: false,
+        }) as string[];
 
-          const [state, roosterA, roosterB, winnerA, poolA, poolB, boostA, boostB] = await Promise.all([
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "state",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "roosterA",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "roosterB",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "winnerA",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "poolA",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "poolB",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "totalBoostA",
-            }),
-            publicClient.readContract({
-              address: matchAddr as `0x${string}`,
-              abi: MATCH_ABI,
-              functionName: "totalBoostB",
-            }),
-          ]) as [number, string, string, boolean, bigint, bigint, bigint, bigint];
+        const allCalls = matchAddrs.flatMap((addr) => [
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "state" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "roosterA" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "roosterB" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "winnerA" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "betPoolA" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "betPoolB" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "boostPoolA" as const },
+          { address: addr as `0x${string}`, abi: MATCH_ABI, functionName: "boostPoolB" as const },
+        ]);
+        const results = await publicClient.multicall({ contracts: allCalls, allowFailure: false });
 
+        const records: MatchRecord[] = [];
+        for (let i = 0; i < matchAddrs.length; i++) {
+          const base = i * 8;
+          const state = results[base] as number;
+          const roosterA = results[base + 1] as string;
+          const roosterB = results[base + 2] as string;
+          const winnerA = results[base + 3] as boolean;
+          const poolA = results[base + 4] as bigint;
+          const poolB = results[base + 5] as bigint;
+          const boostA = results[base + 6] as bigint;
+          const boostB = results[base + 7] as bigint;
           records.push({
-            address: matchAddr,
+            address: matchAddrs[i],
             roosterA,
             roosterB,
+            state: Number(state),
             winner: state === 2 ? (winnerA ? roosterA : roosterB) : undefined,
             poolA,
             poolB,
@@ -115,84 +121,73 @@ export function MatchHistory() {
             boostB,
           });
         }
-
         setHistory(records.reverse());
       } catch (error) {
-        console.error("Failed to fetch history:", error);
+        if (isRateLimitOrTimeout(error)) {
+          backoffUntil.current = Date.now() + BACKOFF_AFTER_RATE_LIMIT_MS;
+          setRpcError("RPC rate limit or timeout. History will retry in ~1 min. Use an RPC with API key in VITE_RPC_URL to avoid this.");
+        } else {
+          setRpcError("Could not load history.");
+        }
       }
     };
 
     fetchHistory();
-    const interval = setInterval(fetchHistory, 30000);
+    const interval = setInterval(fetchHistory, HISTORY_POLL_MS);
     return () => clearInterval(interval);
   }, []);
 
-  if (history.length === 0) {
-    return (
-      <section className="mt-12">
-        <h2 className="section-title">Match History</h2>
-        <div className="flex overflow-x-auto gap-6 pb-4 scroll-snap-x scroll-smooth">
-          <p className="text-gray-500 py-8">No matches yet.</p>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="mt-12">
-      <h2 className="section-title">Match History</h2>
-      <div className="flex overflow-x-auto gap-6 pb-4 scroll-snap-x scroll-smooth snap-x snap-mandatory -mx-2 px-2">
-        {history.map((m, i) => {
-          const totalPool = (m.poolA + m.poolB) / BigInt(1e16);
-          return (
-            <motion.div
+    <section className="mt-12" id="history">
+      <h2 className="section-title">Last 5 matches</h2>
+      {rpcError && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-amber-200 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{rpcError}</span>
+        </div>
+      )}
+      {history.length === 0 && !rpcError ? (
+        <p className="text-gray-500 py-8 text-center">No matches yet.</p>
+      ) : history.length === 0 ? null : (
+        <ul className="space-y-2 max-w-2xl mx-auto list-none p-0 m-0">
+          {history.map((m, i) => (
+            <motion.li
               key={m.address}
-              className="flex-shrink-0 w-72 snap-start rounded-xl overflow-hidden border-2 border-gold/20 bg-charcoal/90 hover:border-gold/50 hover:shadow-gold-glow transition-all duration-300 cursor-pointer"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center justify-between gap-4 py-3 px-4 rounded-xl bg-charcoal/80 border border-gold/20"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              whileHover={{ scale: 1.03, y: -4 }}
             >
-              <div className="p-4 border-b border-white/10 bg-black/20">
-                <div className="flex items-center justify-between gap-2 text-sm mb-2">
-                  <span className={m.winner === m.roosterA ? "text-emerald font-semibold" : "text-gray-400"}>{m.roosterA}</span>
-                  <span className="text-arena-red font-bold text-xs">VS</span>
-                  <span className={m.winner === m.roosterB ? "text-emerald font-semibold" : "text-gray-400"}>{m.roosterB}</span>
-                </div>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span
+                  className={`font-medium truncate ${m.winner === m.roosterA ? "text-emerald" : "text-gray-400"}`}
+                >
+                  {m.roosterA}
+                </span>
+                <span className="text-arena-red font-bold text-xs flex-shrink-0">VS</span>
+                <span
+                  className={`font-medium truncate ${m.winner === m.roosterB ? "text-emerald" : "text-gray-400"}`}
+                >
+                  {m.roosterB}
+                </span>
               </div>
-              <div className="p-4 space-y-2 text-xs">
-                {m.winner && (
-                  <div className="mb-3 pb-3 border-b border-gold/20">
-                    <p className="text-gray-400">🏆 Winner</p>
-                    <p className="font-display text-gold tracking-wider">{m.winner}</p>
-                  </div>
+              <div className="flex items-center gap-2 flex-shrink-0 text-sm">
+                {m.winner ? (
+                  <>
+                    <Trophy className="w-4 h-4 text-gold" />
+                    <span className="text-gold font-semibold">Winner: {m.winner}</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-500">Pending</span>
+                  </>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-gray-500">Team A Bets</p>
-                    <p className="text-white font-semibold">{(m.poolA / BigInt(1e16)).toString()} MON</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Team B Bets</p>
-                    <p className="text-white font-semibold">{(m.poolB / BigInt(1e16)).toString()} MON</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">A Boosts</p>
-                    <p className="text-cyan-300 text-xs">{(m.boostA / BigInt(1e16)).toString()} PAL</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">B Boosts</p>
-                    <p className="text-cyan-300 text-xs">{(m.boostB / BigInt(1e16)).toString()} PAL</p>
-                  </div>
-                </div>
-                <div className="pt-2 border-t border-gold/20">
-                  <p className="text-gold font-semibold text-center">Pool: {totalPool.toString()} MON</p>
-                </div>
               </div>
-            </motion.div>
-          );
-        })}
-      </div>
+            </motion.li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

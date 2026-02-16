@@ -5,5 +5,12 @@ libs = ["lib"]
 evm_version = "prague"
 solc_version = "0.8.28"
 
+# IMPORTANT: avoid contracts/contracts duplication
+remappings = [
+  "forge-std/=lib/forge-std/src/",
+  "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+  "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
+]
+
 [rpc_endpoints]
 monad_testnet = "https://testnet-rpc.monad.xyz"

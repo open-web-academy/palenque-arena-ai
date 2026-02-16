@@ -2,6 +2,7 @@ import React from "react";
 import { Match, OddsData } from "../types";
 import { motion } from "framer-motion";
 import { Swords } from "lucide-react";
+import { SideBetForm } from "./SideBetForm";
 
 interface MatchCardProps {
   match: Match | null;
@@ -68,6 +69,15 @@ export function MatchCard({ match, odds, loading }: MatchCardProps) {
             <p className="font-numeric text-2xl text-gold">{pAPercent}%</p>
             <p className="text-xs text-gray-400">Pool: {(Number(match.betPoolA) / 1e18).toFixed(2)} MON</p>
             <p className="text-xs text-gray-500">Boosts: {(Number(match.boostPoolA) / 1e18).toFixed(0)} PAL</p>
+            {match.state === 0 && (
+              <SideBetForm
+                isA={true}
+                roosterName={match.roosterA}
+                matchAddress={match.address}
+                matchState={match.state}
+                variant="gold"
+              />
+            )}
           </div>
 
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-arena-red/20 border-2 border-arena-red flex items-center justify-center">
@@ -82,6 +92,15 @@ export function MatchCard({ match, odds, loading }: MatchCardProps) {
             <p className="font-numeric text-2xl text-gold">{pBPercent}%</p>
             <p className="text-xs text-gray-400">Pool: {(Number(match.betPoolB) / 1e18).toFixed(2)} MON</p>
             <p className="text-xs text-gray-500">Boosts: {(Number(match.boostPoolB) / 1e18).toFixed(0)} PAL</p>
+            {match.state === 0 && (
+              <SideBetForm
+                isA={false}
+                roosterName={match.roosterB}
+                matchAddress={match.address}
+                matchState={match.state}
+                variant="red"
+              />
+            )}
           </div>
         </div>
       </div>
